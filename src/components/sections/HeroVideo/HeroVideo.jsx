@@ -3,9 +3,10 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Container, Button } from '@components/common';
 import { OptimizedImage } from '@components/ui';
-import { useMediaQuery, useReducedMotion } from '@hooks';
+import { useReducedMotion, useIsMobile } from '@hooks';
 import heroPoster from '@assets/images/hero/hero-bg 2.jpeg';
 import heroVideo from '@assets/New_hero-section.mp4';
+import heroVideoMobile from '@assets/for mobile.mp4';
 
 /**
  * HeroVideo — full-bleed cinematic hero (Aesop-inspired tranquility).
@@ -18,7 +19,7 @@ import heroVideo from '@assets/New_hero-section.mp4';
  * Fallbacks: static poster on mobile (<768px), on reduced-motion
  * preference, or if the video fails to load.
  */
-const VIDEO_SRC = heroVideo;
+
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
@@ -30,13 +31,15 @@ const fadeUp = {
 };
 
 const HeroVideo = () => {
-  const isDesktop = useMediaQuery('(min-width: 768px)');
+  const isMobileView = useIsMobile();
   const prefersReducedMotion = useReducedMotion();
-  const [videoReady, setVideoReady] = useState(false);
+  const [readySrc, setReadySrc] = useState(null);
   const [videoFailed, setVideoFailed] = useState(false);
   const videoRef = useRef(null);
 
-  const showVideo = isDesktop && !prefersReducedMotion && !videoFailed;
+  const videoSrc = isMobileView ? heroVideoMobile : heroVideo;
+  const videoReady = readySrc === videoSrc;
+  const showVideo = !prefersReducedMotion && !videoFailed;
 
   // React sets `muted` as an attribute, but autoplay policies check the
   // DOM property — enforce it imperatively and start playback explicitly.
@@ -50,12 +53,13 @@ const HeroVideo = () => {
 
   return (
     <section
-      className="relative flex min-h-[95vh] items-center overflow-hidden bg-charcoal pt-[120px] pb-[120px]"
+      className="relative flex min-h-[95vh] items-center overflow-hidden bg-charcoal pt-28 pb-20 lg:pt-[120px] lg:pb-[120px]"
       aria-labelledby="hero-heading"
     >
       {/* Backdrop: video on desktop, warm poster otherwise */}
       {showVideo ? (
         <video
+          key={videoSrc}
           ref={videoRef}
           autoPlay
           muted
@@ -63,7 +67,7 @@ const HeroVideo = () => {
           playsInline
           preload="auto"
           poster={heroPoster}
-          onCanPlay={() => setVideoReady(true)}
+          onCanPlay={() => setReadySrc(videoSrc)}
           onError={() => setVideoFailed(true)}
           aria-hidden="true"
           tabIndex={-1}
@@ -71,7 +75,7 @@ const HeroVideo = () => {
             videoReady ? 'opacity-100' : 'opacity-0'
           }`}
         >
-          <source src={VIDEO_SRC} type="video/mp4" />
+          <source src={videoSrc} type="video/mp4" />
         </video>
       ) : (
         <OptimizedImage

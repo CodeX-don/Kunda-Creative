@@ -21,6 +21,8 @@
   body {
     @apply bg-cream text-charcoal font-mono text-body leading-relaxed;
     min-height: 100vh;
+    /* Safety net: rotated frames/collage overlaps must never cause page-wide horizontal scroll */
+    overflow-x: clip;
   }
 
   h1, h2, h3, h4, h5, h6 {
